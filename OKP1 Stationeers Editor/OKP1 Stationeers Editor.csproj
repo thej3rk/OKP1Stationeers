@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>OKP1_Stationeers_Editor</RootNamespace>
     <AssemblyName>OKP1 Stationeers Editor</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -99,6 +99,7 @@
     <Compile Include="AtmosphereEdit.Designer.cs">
       <DependentUpon>AtmosphereEdit.cs</DependentUpon>
     </Compile>
+    <Compile Include="EditorSettings.cs" />
     <Compile Include="GlobData.cs" />
     <Compile Include="ItemRecipe.cs" />
     <Compile Include="LockerItemEdit.cs">
@@ -123,6 +124,12 @@
     </Compile>
     <Compile Include="RecipeDataFile.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="SettingsWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingsWindow.Designer.cs">
+      <DependentUpon>SettingsWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="Stationeers\GasClasses.cs" />
     <Compile Include="Stationeers\Chemistry.cs" />
     <Compile Include="Stationeers\GasMixture.cs" />
@@ -155,6 +162,9 @@
     </Compile>
     <EmbeddedResource Include="ReagentEdit.resx">
       <DependentUpon>ReagentEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingsWindow.resx">
+      <DependentUpon>SettingsWindow.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />

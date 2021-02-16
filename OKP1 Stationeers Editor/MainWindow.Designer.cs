@@ -50,6 +50,7 @@
             this.treeViewNavLeft = new System.Windows.Forms.TreeView();
             this.rightEditTab = new System.Windows.Forms.TabControl();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.EdMainMenuStrip.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -75,6 +76,7 @@
             this.toolStripMenuFileClose,
             this.toolStripMenuFileSave,
             this.toolStripSeparator1,
+            this.settingsToolStripMenuItem,
             this.toolStripMenuFileLoadData,
             this.toolStripSeparator2,
             this.toolStripMenuFileExit});
@@ -221,6 +223,13 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(23, 23);
             this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
+            this.settingsToolStripMenuItem.Text = "Se&ttings";
+            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -237,6 +246,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "OKP1 Stationeers Editor";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_Closing);
+            this.Load += new System.EventHandler(this.MainWindow_Load);
             this.EdMainMenuStrip.ResumeLayout(false);
             this.EdMainMenuStrip.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
@@ -269,5 +279,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelGameVersion;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuFileLoadData;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
     }
 }

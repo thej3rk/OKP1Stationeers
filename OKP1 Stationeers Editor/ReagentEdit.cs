@@ -14,6 +14,8 @@ namespace OKP1_Stationeers_Editor
     public partial class ReagentEdit : UserControl
     {
         private ThingMachine machine = null;
+        public int AddQuantity;
+        public int TopUpQuantity;
 
         public ReagentEdit()
         {
@@ -23,13 +25,27 @@ namespace OKP1_Stationeers_Editor
 
         public ReagentEdit(ThingMachine newMachine) : this()
         {
-
             // populate us...
             machine = newMachine;
 
             listBoxReagents.DataSource = machine.GetReagents();
             listBoxReagents.DisplayMember = "Name";
             listBoxReagents.ValueMember = "Self";
+
+            AddQuantity = TopUpQuantity = 500;
+        }
+
+        public ReagentEdit(ThingMachine newMachine, int addQuantity, int topUpQuantity) : this()
+        {
+            // populate us...
+            machine = newMachine;
+
+            listBoxReagents.DataSource = machine.GetReagents();
+            listBoxReagents.DisplayMember = "Name";
+            listBoxReagents.ValueMember = "Self";
+
+            AddQuantity = addQuantity;
+            TopUpQuantity = topUpQuantity;
         }
 
         private void listBoxReagents_SelectedIndexChanged(object sender, EventArgs e)
@@ -44,7 +60,7 @@ namespace OKP1_Stationeers_Editor
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            AddReagent("Reagents.", 500);
+            AddReagent("Reagents.", AddQuantity);
         }
 
         private void AddReagent(string reagent, int quantity)
@@ -65,9 +81,8 @@ namespace OKP1_Stationeers_Editor
             {
                 if (!HasReagent(reagent.ToString()))
                 {
-                    AddReagent(reagent.ToString(), 500);
+                    AddReagent(reagent.ToString(), AddQuantity);
                 }
-                //MessageBox.Show(string.Format("{0} {1}", reagent, item));
             }
         }
 
@@ -132,7 +147,7 @@ namespace OKP1_Stationeers_Editor
             for (int i = 0; i < listBoxReagents.Items.Count; i++)
             {
                 listBoxReagents.SelectedIndex = i;
-                textBoxQuantity.Text = "500";
+                textBoxQuantity.Text = TopUpQuantity.ToString();
                 buttonSave_Click(buttonSave, e);
             }
         }

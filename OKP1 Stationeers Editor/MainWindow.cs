@@ -14,16 +14,17 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
+using System.Xml.Serialization;
 
 namespace OKP1_Stationeers_Editor
 {
-     public partial class MainWindow : Form
+    public partial class MainWindow : Form
     {
         private FileStream WorldStream = null;
         private XDocument World = null;
         private bool WorldIsModified = false;
         private string _recipeDataFile = null;
-        
+
         public static readonly HttpClient httpClient = new HttpClient();
 
 
@@ -37,28 +38,32 @@ namespace OKP1_Stationeers_Editor
             {
                 _maxThingRefId = value;
                 // update tooltip...
-                if(value != 0)
+                if (value != 0)
                 {
                     toolStripStatusLabelMaxRef.Text = $"Max Ref: {value}";
-                } else
+                }
+                else
                 {
                     toolStripStatusLabelMaxRef.Text = "";
                 }
-                
+
             }
         }
 
-        protected string RecipeDataETag {
+        protected string RecipeDataETag
+        {
             get => Properties.Settings.Default.RecipeDataETag;
 
-            set {
+            set
+            {
 
                 Properties.Settings.Default.RecipeDataETag = value;
             }
 
         }
 
-        protected DateTime RecipeDataRefreshedAt {
+        protected DateTime RecipeDataRefreshedAt
+        {
             get => Properties.Settings.Default.RecipeDataRefreshedAt;
 
             set
@@ -87,11 +92,12 @@ namespace OKP1_Stationeers_Editor
             {
                 if (WorldIsModified)
                 {
-                    if(MessageBox.Show("Quit without saving?", "Quit without saving world?", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    if (MessageBox.Show("Quit without saving?", "Quit without saving world?", MessageBoxButtons.YesNo) == DialogResult.Yes)
                     {
                         WorldStream.Close();
                         Application.Exit();
-                    } else
+                    }
+                    else
                     {
                         return;
                     }
@@ -127,14 +133,14 @@ namespace OKP1_Stationeers_Editor
                 );
 
                 // See if we've got recipe data file and fetch it if not...
-                if(!File.Exists(_recipeDataFile))
+                if (!File.Exists(_recipeDataFile))
                 {
                     HttpResponseMessage response;
                     response = await FetchRecipes();
                     DoRecipeDataCompletion(response);
                 }
 
-                if(GlobData._recipesDataFile == null)
+                if (GlobData._recipesDataFile == null)
                 {
                     DoAutoCompleterLoad();
                 }
@@ -161,7 +167,7 @@ namespace OKP1_Stationeers_Editor
             DoTreeCleanup();
 
             // Populate atosphere data...
-            
+
             GlobData._atmosphereDataByThing.Clear();
 
             var atmospheres = from ln in World.Element("WorldData").Element("Atmospheres").Elements()
@@ -170,7 +176,7 @@ namespace OKP1_Stationeers_Editor
             {
                 // Check if ThingReferenceId > 0...
                 Int64 thingRefId = Int64.Parse(ln.Element("ThingReferenceId").Value);
-                if(thingRefId > 0)
+                if (thingRefId > 0)
                 {
                     GlobData._atmosphereDataByThing[thingRefId] = ln;
                 }
@@ -179,26 +185,26 @@ namespace OKP1_Stationeers_Editor
 
             // Run through and find the highest reference ID, lockers..etc...
             // Precompile Tank regex...
-            Regex tankRegex = new Regex(@"^((DynamicGasCanister)|(ItemGasCanister)|(StructureTank(Big|Small)))",RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            Regex tankRegex = new Regex(@"^((DynamicGasCanister)|(ItemGasCanister)|(StructureTank(Big|Small)))", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
             var things = from ln in World.Element("WorldData").Element("Things").Elements()
                          select ln;
             foreach (XElement ln in things)
             {
-                if(ln.Element("ReferenceId") != null)
+                if (ln.Element("ReferenceId") != null)
                 {
                     UInt64 newVal = UInt64.Parse(ln.Element("ReferenceId").Value);
-                    if( newVal > newMaxRefVal)
+                    if (newVal > newMaxRefVal)
                     {
                         newMaxRefVal = newVal;
                     }
-                    
+
                 }
 
                 // found a locker ?
                 string thingType = (string)ln.Attributes().FirstOrDefault(a => a.Name.LocalName == "type");
                 XElement prefabName = ln.Element("PrefabName");
-                
+
 
 
                 switch (thingType)
@@ -253,7 +259,7 @@ namespace OKP1_Stationeers_Editor
                         break;
                 }
             }
-            
+
             things = null;
 
             treeViewNavLeft.EndUpdate();
@@ -266,7 +272,7 @@ namespace OKP1_Stationeers_Editor
         {
             treeViewNavLeft.BeginUpdate();
             treeViewNavLeft.CollapseAll();
-            foreach(TreeNode t in treeViewNavLeft.Nodes)
+            foreach (TreeNode t in treeViewNavLeft.Nodes)
             {
                 t.Nodes.Clear();
             }
@@ -294,7 +300,7 @@ namespace OKP1_Stationeers_Editor
         }
         private void ToolStripMenuClose_Click(object sender, EventArgs e)
         {
-            if(WorldIsModified)
+            if (WorldIsModified)
             {
                 if (MessageBox.Show("Close without saving?", "Close without saving world?", MessageBoxButtons.YesNo) == DialogResult.No)
                 {
@@ -333,7 +339,7 @@ namespace OKP1_Stationeers_Editor
                         break;
 
                     case ThingManager.ThingType.LockerItem:
-                        { 
+                        {
                             ThingLockerItem thingLockerItem = (ThingLockerItem)thing;
                             TabPage lockerItemTabPage;
                             // here we have to check for a null XML and if so stand up an empty item...
@@ -385,13 +391,22 @@ namespace OKP1_Stationeers_Editor
                                 {
                                     Name = tabKey
                                 };
-                                machineReagentsPage.Controls.Add(new ReagentEdit(thingMachine));
+                                machineReagentsPage.Controls.Add(new ReagentEdit(thingMachine, editorSettings.DefaultAddQuantity, editorSettings.TopUpQuantity));
                                 rightEditTab.TabPages.Add(machineReagentsPage);
                                 rightEditTab.SelectTab(machineReagentsPage);
+
                             }
                             else
                             {
                                 rightEditTab.SelectTab(tabKey);
+
+                                // if the application settings were changed after the tab was already opened, we need to send the updates to the child ReagentEdit control
+                                if(rightEditTab.SelectedTab.Controls[0] is ReagentEdit)
+                                {
+                                    ReagentEdit re = rightEditTab.SelectedTab.Controls[0] as ReagentEdit;
+                                    re.AddQuantity = editorSettings.DefaultAddQuantity;
+                                    re.TopUpQuantity = editorSettings.TopUpQuantity;
+                                }
                             }
                         }
                         break;
@@ -401,7 +416,7 @@ namespace OKP1_Stationeers_Editor
                             ThingAtmosphere thingAtmosphere = (ThingAtmosphere)thing;
                             TabPage atmosphereThingPage;
                             string tabKey = $"{thingAtmosphere.Id} Tank {thingAtmosphere.GivenName}";
-                            if(!rightEditTab.TabPages.ContainsKey(tabKey))
+                            if (!rightEditTab.TabPages.ContainsKey(tabKey))
                             {
                                 atmosphereThingPage = new TabPage(tabKey)
                                 {
@@ -414,7 +429,8 @@ namespace OKP1_Stationeers_Editor
                                 rightEditTab.TabPages.Add(atmosphereThingPage);
                                 rightEditTab.SelectTab(atmosphereThingPage);
 
-                            } else
+                            }
+                            else
                             {
                                 rightEditTab.SelectTab(tabKey);
                             }
@@ -540,7 +556,7 @@ namespace OKP1_Stationeers_Editor
                     }
                 }
             }
-            if(e.Button == MouseButtons.Middle)
+            if (e.Button == MouseButtons.Middle)
             {
                 TabControl tab = sender as TabControl;
                 rightEditTab.TabPages.Remove(tab.TabPages[0]);
@@ -553,7 +569,7 @@ namespace OKP1_Stationeers_Editor
             HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, Properties.Settings.Default.RecipeDataUrl);
             requestMessage.Headers.Accept.Clear();
             requestMessage.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json"));
-            if(RecipeDataETag != null && RecipeDataETag.Length >= 1)
+            if (RecipeDataETag != null && RecipeDataETag.Length >= 1)
             {
                 requestMessage.Headers.Add("If-None-Match", RecipeDataETag);
             }
@@ -569,7 +585,7 @@ namespace OKP1_Stationeers_Editor
             // Check to make sure that it's been more than at least a couple of hours...
             DateTime current = DateTime.UtcNow;
             DateTime future = RecipeDataRefreshedAt.AddHours(2);
-            if( current < future)
+            if (current < future)
             {
                 Console.WriteLine($"Tried to fetch too soon {current} < {future}");
                 MessageBox.Show("Cannot comply, wait a couple of hours!");
@@ -584,7 +600,7 @@ namespace OKP1_Stationeers_Editor
             toolStripMenuFileLoadData.Enabled = true;
 
             DoRecipeDataCompletion(response);
-            
+
         }
 
         private async void DoRecipeDataCompletion(HttpResponseMessage response)
@@ -627,7 +643,7 @@ namespace OKP1_Stationeers_Editor
         private void DoAutoCompleterLoad()
         {
 
-            
+
             try
             {
                 string recipesData = File.ReadAllText(_recipeDataFile);
@@ -635,7 +651,8 @@ namespace OKP1_Stationeers_Editor
                 RecipeDataFile recipesDataFile = JsonConvert.DeserializeObject<RecipeDataFile>(recipesData);
                 Console.WriteLine($"Loaded {recipesDataFile.branch} from {recipesDataFile.updated_time} with {recipesDataFile.recipes.Count()}");
                 GlobData._recipesDataFile = recipesDataFile;
-            } catch (FileNotFoundException)
+            }
+            catch (FileNotFoundException)
             {
                 Console.WriteLine($"Unable to load recipe data file from {_recipeDataFile}");
                 return;
@@ -643,15 +660,16 @@ namespace OKP1_Stationeers_Editor
 
             // Massage into a dictionary...
             GlobData.Recipes.Clear();
-            foreach(ItemRecipe ri in GlobData._recipesDataFile.recipes)
+            foreach (ItemRecipe ri in GlobData._recipesDataFile.recipes)
             {
 
                 // Instead of exception try/catch, explicitly look
 
-                if(GlobData.Recipes.ContainsKey(ri.item))
+                if (GlobData.Recipes.ContainsKey(ri.item))
                 {
                     GlobData.Recipes[ri.item].Add(ri);
-                } else
+                }
+                else
                 {
                     List<ItemRecipe> rl = new List<ItemRecipe>();
                     rl.Add(ri);
@@ -667,9 +685,90 @@ namespace OKP1_Stationeers_Editor
             Properties.Settings.Default.Save();
             if (toolStripMenuFileSave.Enabled)
             {
-                if(MessageBox.Show("You did not save your world file before closing the application. Would you like to save it?", "Save file?", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
+                if (MessageBox.Show("You did not save your world file before closing the application. Would you like to save it?", "Save file?", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
                 {
                     toolStripMenuFileSave_Click(toolStripMenuFileSave, new EventArgs());
+                }
+            }
+        }
+
+        // Application settings and related functions
+        // These settings should transcend updates to the software, unlike the built in .NET Application Settings.settings file, without messing with all sorts of weird Upgrade functions
+        private EditorSettings editorSettings;
+        private string SettingsPath;
+        private string SettingsFile;
+
+        private void MainWindow_Load(object sender, EventArgs e)
+        {
+            // check if a "portable" file exists in the application directory. If so, use a local settings.xml file
+            // but if it's an installed instance, use the user's appdata directory
+            if (!File.Exists("portable"))
+            { SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OKP1SE"); }
+            else
+            { SettingsPath = Application.StartupPath; }
+
+            SettingsFile = Path.Combine(SettingsPath, "settings.xml");
+
+            LoadSettings();
+        }
+
+        private void LoadSettings()
+        {
+            editorSettings = new EditorSettings();
+            if (File.Exists(SettingsFile))
+            {
+                XmlSerializer xs = new XmlSerializer(editorSettings.GetType());
+                using (StreamReader sr = new StreamReader(SettingsFile))
+                { editorSettings = (EditorSettings)xs.Deserialize(sr); }
+            }
+            else
+            {
+                editorSettings.DefaultAddQuantity = 500;
+                editorSettings.TopUpQuantity = 500;
+                SaveSettings();
+            }
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                if (!Directory.Exists(SettingsPath))
+                { Directory.CreateDirectory(SettingsPath); }
+            }
+            catch (Exception ex)
+            { MessageBox.Show(string.Format("Unable to create the settings file directory path at {0}. Message:\n\n{1}", SettingsPath, ex.Message), "Unable to save settings", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+
+            try
+            {
+                XmlSerializer xs = new XmlSerializer(editorSettings.GetType());
+                using (TextWriter tw = new StreamWriter(SettingsFile))
+                { xs.Serialize(tw, editorSettings); }
+            }
+            catch (Exception ex)
+            { MessageBox.Show(string.Format("Unable to create the settings file {0}. Message\n\n{1}", SettingsFile, ex.Message), "Unable to save settings", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SettingsWindow settings = new SettingsWindow();
+            settings.DefaultAddQuantity = editorSettings.DefaultAddQuantity;
+            settings.TopUpQuantity = editorSettings.TopUpQuantity;
+            if (settings.ShowDialog(this) == DialogResult.OK)
+            {
+                editorSettings.DefaultAddQuantity = settings.DefaultAddQuantity;
+                editorSettings.TopUpQuantity = settings.TopUpQuantity;
+                SaveSettings();
+
+                // we need to send the updates to the child ReagentEdit controls for already-opened tabs
+                foreach (TabPage tab in rightEditTab.TabPages)
+                {
+                    if (tab.Controls[0] is ReagentEdit)
+                    {
+                        ReagentEdit re = tab.Controls[0] as ReagentEdit;
+                        re.AddQuantity = editorSettings.DefaultAddQuantity;
+                        re.TopUpQuantity = editorSettings.TopUpQuantity;
+                    }
                 }
             }
         }
